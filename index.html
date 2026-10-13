@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1520">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Idea Vault">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Idea Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* One-column phone app on a blueprint grid; fixed bottom tab bar; details open as a bottom sheet. */
+:root{
+  --bg:#0d1520; --surface:#142030; --surface2:#1b2a3e; --line:#2a3c55; --grid:rgba(120,160,210,.07);
+  --fg:#e7eef6; --muted:#8fa1b9; --accent:#e9924c; --accent-ink:#1b0f04; --accent-soft:rgba(233,146,76,.14);
+  --danger:#ff7a7a; --ok:#59d3a2; --warn:#f0c74e;
+  --c-robotics:#6fb3ff; --c-iot:#4fd1a5; --c-web:#c49cff; --c-app:#ff8fa5; --c-software:#f0c74e; --c-other:#a4b2c4;
+  --f-display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root{
+  --bg:#edf2f8; --surface:#ffffff; --surface2:#e2e9f2; --line:#c6d3e2; --grid:rgba(40,90,150,.07);
+  --fg:#0f1b2b; --muted:#53647b; --accent:#b55a18; --accent-ink:#ffffff; --accent-soft:rgba(181,90,24,.10);
+  --danger:#c43232; --ok:#11845a; --warn:#946d00;
+  --c-robotics:#1f6fc4; --c-iot:#0d8a62; --c-web:#7a45c9; --c-app:#c43a58; --c-software:#946d00; --c-other:#5a6878;
+  color-scheme:light;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:15px; line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px; background-attachment:fixed;
+  padding-inline:16px; padding-block:0 calc(84px + env(safe-area-inset-bottom,0px));
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:560px;margin:0 auto}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:calc(14px + env(safe-area-inset-top,0px)) 10px;border-bottom:1px dashed var(--line);margin-bottom:16px}
+.brand{display:flex;flex-direction:column;gap:0}
+.brand h1{font-size:22px;font-weight:700;line-height:1.1}
+.sync{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.ok i{background:var(--ok)} .sync.busy i{background:var(--warn)} .sync.off i{background:var(--danger)}
+.streak{display:flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-variant-numeric:tabular-nums;white-space:nowrap}
+.streak b{color:var(--accent);font-size:14px}
+
+.capture{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:14px}
+.capture textarea{width:100%;min-height:130px;resize:vertical;background:transparent;border:0;outline:none;font-size:18px;line-height:1.45;padding:2px}
+.capture textarea::placeholder{color:var(--muted);opacity:.8}
+.hint{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:flex-start}
+.hint svg{flex:none;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:7px 12px;font-size:13.5px;min-height:36px}
+.chip .code{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;color:var(--cat,var(--muted))}
+.chip[aria-pressed="true"]{border-color:var(--cat,var(--accent));background:color-mix(in srgb,var(--cat,var(--accent)) 16%,var(--surface))}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);padding:10px 14px;font-weight:500;min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-family:var(--f-display);font-weight:700;font-size:17px;letter-spacing:.03em;min-height:54px}
+.btn.primary:disabled{opacity:.45}
+.btn.ghost{background:transparent}
+.btn.small{min-height:36px;padding:6px 12px;font-size:13.5px;border-radius:10px}
+.btn.accent{border-color:var(--accent);color:var(--accent)}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.section{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+.section.first{margin-top:0}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.section-head h2{font-size:17px}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px 12px 18px;display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;min-width:0}
+.card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--cat,var(--muted))}
+.card .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.card .meta .code{color:var(--cat);letter-spacing:.06em}
+.card h3{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.card p{margin:0;color:var(--muted);font-size:14px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;border:1px solid var(--line)}
+.pill.hot{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;color:var(--muted);font-size:14px}
+
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px;min-height:46px}
+.search input{flex:1;min-width:0;background:transparent;border:0;outline:none;font-size:16px}
+.scroll-x{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
+.scroll-x::-webkit-scrollbar{display:none}
+.scroll-x .chip{flex:none}
+
+.board{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-16px;padding-inline:16px;padding-bottom:8px}
+.col{flex:none;width:min(80vw,300px);scroll-snap-align:start;background:color-mix(in srgb,var(--surface) 60%,transparent);border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+.col-head{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 6px;border-bottom:1px dashed var(--line)}
+.col-head h3{font-size:15px}
+.col-head .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.mini{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--cat);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.mini .t{font-size:14px;font-weight:500;overflow-wrap:anywhere;background:none;border:0;padding:0;text-align:left}
+.mini .acts{display:flex;justify-content:space-between;align-items:center}
+.mini .acts .code{font-family:var(--f-mono);font-size:10.5px;color:var(--cat)}
+.mini .acts .mv{display:flex;gap:4px}
+.icon-btn{width:34px;height:34px;display:inline-grid;place-items:center;border-radius:8px;border:1px solid var(--line);background:var(--surface2)}
+.icon-btn:disabled{opacity:.3}
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.pipeline div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.pipeline b{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.pipeline span{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.panel .sub{font-size:13.5px;color:var(--muted)}
+.plus{text-align:center;font-family:var(--f-mono);color:var(--muted);font-size:13px}
+.mix textarea{width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;resize:vertical}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.stat b{display:block;font-family:var(--f-display);font-size:24px;font-variant-numeric:tabular-nums;line-height:1.1}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:76px 1fr 28px;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}
+.bar .fill{height:100%;background:var(--cat);border-radius:5px}
+.bar .v{font-family:var(--f-mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
+nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%;max-width:560px}
+nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:6px 0;border-radius:10px;color:var(--muted);font-size:11.5px;font-family:var(--f-mono);letter-spacing:.04em}
+nav.tabs button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+nav.tabs svg{width:22px;height:22px}
+
+.scrim{position:fixed;inset:0;background:rgba(5,10,18,.55);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-height:90%;overflow-y:auto;background:var(--bg);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:8px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.sheet .in{max-width:560px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 10px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input,.field textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;width:100%}
+.field textarea{min-height:100px;resize:vertical}
+.title-in{font-family:var(--f-display)!important;font-size:20px!important;font-weight:600}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+
+.head-r{display:flex;align-items:center;gap:8px}
+.gear{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.connect{display:flex;flex-direction:column;gap:8px;border:1px dashed var(--accent);background:var(--accent-soft);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.steps{margin:0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+.status-line{font-size:13.5px;font-family:var(--f-mono)}
+.status-line.ok{color:var(--ok)} .status-line.bad{color:var(--danger)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.97)}50%{transform:scale(1.015)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Idea Vault</h1><span class="sync" id="sync"><i></i><span id="syncT">Loading…</span></span></div>
+    <div class="head-r">
+      <div class="streak" title="Days in a row with at least one idea saved"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><b id="streakN">0</b><span>day streak</span></div>
+      <button class="gear" data-action="settings" aria-label="Settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+  <div class="connect" id="connectBanner" hidden>
+    <b>Connect your Google Sheet</b>
+    <span>Your ideas are saved on this phone. Connect the Sheet once so they sync to your laptop too.</span>
+    <button class="btn small accent" data-action="settings" style="align-self:flex-start">Connect now</button>
+  </div>
+  <main id="view"></main>
+</div>
+
+<nav class="tabs" aria-label="Sections"><div class="in" role="tablist">
+  <button role="tab" data-tab="capture" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/></svg>Capture</button>
+  <button role="tab" data-tab="vault" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h8"/></svg>Vault</button>
+  <button role="tab" data-tab="board" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="13" rx="1"/></svg>Board</button>
+  <button role="tab" data-tab="lab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21.5h11.6a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7 15h10"/></svg>Lab</button>
+</div></nav>
+
+<div id="sheetRoot" hidden><div class="scrim" data-action="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Idea details"><div class="grab"></div><div class="in" id="sheet"></div></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+var CATS=[
+  {k:'robotics',code:'RBT',label:'Robotics'},{k:'iot',code:'IOT',label:'IoT'},{k:'web',code:'WEB',label:'Website'},
+  {k:'app',code:'APP',label:'App'},{k:'software',code:'SW',label:'Software'},{k:'other',code:'MISC',label:'Other'}];
+var HEAT=[{k:'hot',label:'Must build'},{k:'warm',label:'Interesting'},{k:'cool',label:'Someday'}];
+var STAGES=[{k:'spark',label:'Spark'},{k:'exploring',label:'Exploring'},{k:'planning',label:'Planning'},{k:'building',label:'Building'},{k:'shipped',label:'Shipped'}];
+function catOf(k){return CATS.find(function(c){return c.k===k})||CATS[5]}
+function stageOf(k){return STAGES.find(function(s){return s.k===k})||STAGES[0]}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function $(s){return document.querySelector(s)}
+var ls={get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+var S={tab:ls.get('iv-tab','capture'),ideas:ls.get('iv-cache',[]),loaded:false,
+  queue:ls.get('iv-queue',[]),flushing:false,online:true,
+  draft:ls.get('iv-draft',{text:'',cat:'robotics',heat:'warm'}),
+  q:'',fCat:'all',fStage:'all',openId:null,jar:null,mix:null};
+
+/* ---------- sync with the Google Sheet ---------- */
+var CFG=ls.get('iv-config',{url:'',key:''});
+function connected(){return !!(CFG.url&&CFG.key)}
+function call(body,cfg){
+  cfg=cfg||CFG;
+  if(!cfg.url||!cfg.key) return Promise.reject(new Error('not_connected'));
+  body.key=cfg.key;
+  // text/plain keeps this a "simple" request, which Google Apps Script accepts from another site
+  return fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),redirect:'follow'})
+    .then(function(r){if(!r.ok) throw new Error('http_'+r.status);return r.json()})
+    .then(function(j){if(!j.ok){var e=new Error(j.error||'failed');e.code=j.error;throw e}return j});
+}
+function api(fn){
+  var a=[].slice.call(arguments,1);
+  if(fn==='getIdeas') return call({action:'list'}).then(function(j){return j.ideas});
+  if(fn==='addIdea') return call({action:'add',idea:a[0]});
+  if(fn==='updateIdea') return call({action:'update',id:a[0],patch:a[1]});
+  return call({action:'delete',id:a[0]});
+}
+function saveLocal(){ls.set('iv-cache',S.ideas);ls.set('iv-queue',S.queue)}
+function setSync(){
+  var el=$('#sync'),t=$('#syncT');
+  $('#connectBanner').hidden=connected();
+  if(!connected()){el.className='sync';t.textContent=S.ideas.length+(S.ideas.length===1?' idea':' ideas')+' · on this phone';}
+  else if(S.badKey){el.className='sync off';t.textContent='Key rejected · check settings';}
+  else if(!S.online){el.className='sync off';t.textContent=S.queue.length?('Offline · '+S.queue.length+' waiting'):'Offline';}
+  else if(S.queue.length||S.flushing){el.className='sync busy';t.textContent='Saving to Sheet…';}
+  else if(!S.loaded){el.className='sync busy';t.textContent='Loading…';}
+  else{el.className='sync ok';t.textContent=S.ideas.length+(S.ideas.length===1?' idea':' ideas')+' · synced';}
+}
+function enqueue(op){S.queue.push(op);saveLocal();setSync();flush()}
+function onFail(e){S.flushing=false;if(e&&e.code==='bad_key'){S.badKey=true}else{S.online=false}setSync()}
+function flush(){
+  if(S.flushing||!connected()||S.badKey){S.loaded=true;setSync();return}
+  if(!S.queue.length){refresh();return}
+  S.flushing=true;setSync();
+  var op=S.queue[0];
+  var p=op.t==='add'?api('addIdea',op.idea):op.t==='upd'?api('updateIdea',op.id,op.patch):api('deleteIdea',op.id);
+  p.then(function(){S.queue.shift();S.online=true;S.flushing=false;saveLocal();flush()}).catch(onFail);
+}
+function refresh(){
+  if(!connected()) return;
+  api('getIdeas').then(function(list){
+    if(S.queue.length) return;
+    S.ideas=list;S.loaded=true;S.online=true;saveLocal();render();
+  }).catch(onFail);
+}
+/* first connection: push every idea already on this phone that the Sheet doesn't have yet */
+function firstSync(){
+  return api('getIdeas').then(function(remote){
+    var have={};remote.forEach(function(r){have[r.id]=1});
+    var queuedAdds={};S.queue.forEach(function(op){if(op.t==='add')queuedAdds[op.idea.id]=1});
+    S.ideas.forEach(function(i){if(!have[i.id]&&!queuedAdds[i.id]) S.queue.push({t:'add',idea:i})});
+    var mine={};S.ideas.forEach(function(i){mine[i.id]=1});
+    S.ideas=S.ideas.concat(remote.filter(function(r){return !mine[r.id]})).sort(function(a,b){return b.createdAt-a.createdAt});
+    saveLocal();render();flush();
+  });
+}
+var Store={
+  add:function(idea){S.ideas.unshift(idea);saveLocal();render();enqueue({t:'add',idea:idea})},
+  update:function(id,patch){
+    var i=S.ideas.find(function(x){return x.id===id});if(!i) return;
+    var changed=false;Object.keys(patch).forEach(function(k){if(i[k]!==patch[k]){i[k]=patch[k];changed=true}});
+    if(!changed) return; i.updatedAt=Date.now();saveLocal();render();enqueue({t:'upd',id:id,patch:patch});
+  },
+  remove:function(id){S.ideas=S.ideas.filter(function(x){return x.id!==id});saveLocal();render();enqueue({t:'del',id:id})}
+};
+window.addEventListener('online',function(){S.online=true;flush()});
+setInterval(function(){if(S.queue.length&&!S.flushing) flush()},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){S.queue.length?flush():refresh()}});
+
+/* ---------- helpers ---------- */
+function dayKey(ms){var d=new Date(ms);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+function streaks(){
+  var days={};S.ideas.forEach(function(i){days[dayKey(i.createdAt)]=1});
+  var cur=0,d=new Date(); if(!days[dayKey(d)]) d.setDate(d.getDate()-1);
+  while(days[dayKey(d)]){cur++;d.setDate(d.getDate()-1)}
+  var set={};S.ideas.forEach(function(i){var x=new Date(i.createdAt);set[new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime()]=1});
+  var sorted=Object.keys(set).map(Number).sort(function(a,b){return a-b});
+  var best=0,run=0,prev=null;
+  sorted.forEach(function(t){run=(prev!=null&&Math.round((t-prev)/864e5)===1)?run+1:1;best=Math.max(best,run);prev=t});
+  return {cur:cur,best:best};
+}
+function ago(ms){
+  var s=(Date.now()-ms)/1000;
+  if(s<60) return 'just now'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago';
+  if(s<86400*7) return Math.floor(s/86400)+'d ago';
+  return new Date(ms).toLocaleDateString(undefined,{day:'numeric',month:'short',year:new Date(ms).getFullYear()===new Date().getFullYear()?undefined:'numeric'});
+}
+function titleOf(i){return i.title||(i.text||'').split(/\n|[.!?]/)[0].slice(0,60)||'Untitled spark'}
+var tt;function toast(t){var el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(tt);tt=setTimeout(function(){el.hidden=true},2600)}
+function byId(id){return S.ideas.find(function(x){return x.id===id})}
+function catStyle(k){return 'style="--cat:var(--c-'+k+')"'}
+
+function cardHTML(i){
+  var c=catOf(i.cat),st=stageOf(i.stage);
+  return '<button class="card" '+catStyle(c.k)+' data-action="open" data-id="'+esc(i.id)+'">'+
+    '<div class="meta"><span class="code">'+c.code+'</span><span>·</span><span>'+esc(ago(i.createdAt))+'</span><span class="spacer"></span>'+
+    (i.heat==='hot'?'<span class="pill hot">Must build</span>':'')+'<span class="pill">'+st.label+'</span></div>'+
+    '<h3>'+esc(titleOf(i))+'</h3>'+(i.title?'<p>'+esc(i.text)+'</p>':'')+'</button>';
+}
+function emptyMsg(){
+  if(!S.loaded&&!S.ideas.length) return '<div class="empty">Opening your vault…</div>';
+  return '<div class="empty">No sparks yet. Type your first idea above and tap Save spark.</div>';
+}
+
+/* ---------- views ---------- */
+function vCapture(){
+  var d=S.draft;
+  return '<form class="capture" id="capForm" autocomplete="off">'+
+    '<label class="label" for="capText">New spark</label>'+
+    '<textarea id="capText" placeholder="What did you just think of? A robot that…, an app for…, a sensor that…">'+esc(d.text)+'</textarea>'+
+    '<div class="hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>In a hurry? Tap the mic on your phone keyboard and just say it.</span></div>'+
+    '<div class="field"><span class="label">Type</span><div class="chips">'+CATS.map(function(c){return '<button type="button" class="chip" '+catStyle(c.k)+' data-action="d-cat" data-k="'+c.k+'" aria-pressed="'+(d.cat===c.k)+'"><span class="code">'+c.code+'</span>'+c.label+'</button>'}).join('')+'</div></div>'+
+    '<div class="field"><span class="label">How excited are you?</span><div class="chips">'+HEAT.map(function(h){return '<button type="button" class="chip" data-action="d-heat" data-k="'+h.k+'" aria-pressed="'+(d.heat===h.k)+'">'+h.label+'</button>'}).join('')+'</div></div>'+
+    '<div class="field"><label class="label" for="capTitle">Name (optional)</label><input id="capTitle" class="title-in" style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:17px!important" placeholder="e.g. Line-following delivery bot" value="'+esc(d.title||'')+'"></div>'+
+    '<button class="btn primary" type="submit" id="capSave" '+(d.text.trim()?'':'disabled')+'>Save spark</button>'+
+  '</form><div class="section" id="recent"></div>';
+}
+function recentHTML(){
+  var recent=S.ideas.slice(0,3);
+  return '<div class="section-head"><h2>Latest sparks</h2>'+(S.ideas.length>3?'<button class="btn small ghost" data-action="tab" data-k="vault">See all</button>':'')+'</div>'+
+    (recent.length?'<div class="list">'+recent.map(cardHTML).join('')+'</div>':emptyMsg());
+}
+function filtered(){
+  var q=S.q.trim().toLowerCase();
+  return S.ideas.filter(function(i){
+    return (S.fCat==='all'||i.cat===S.fCat)&&(S.fStage==='all'||(i.stage||'spark')===S.fStage)&&
+      (!q||[i.title,i.text,i.notes].join(' ').toLowerCase().indexOf(q)>=0);
+  });
+}
+function vaultList(){
+  var list=filtered();
+  return '<div class="label" id="vcount">'+list.length+' of '+S.ideas.length+' ideas</div><div class="list">'+
+    (list.length?list.map(cardHTML).join(''):(S.ideas.length?'<div class="empty">Nothing matches. Try a different word or filter.</div>':emptyMsg()))+'</div>';
+}
+function vVault(){
+  return '<div class="section first">'+
+    '<label class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>'+
+    '<input id="q" type="search" placeholder="Search ideas, parts, notes…" value="'+esc(S.q)+'" aria-label="Search ideas"></label>'+
+    '<div class="scroll-x">'+[{k:'all',code:'',label:'All types'}].concat(CATS).map(function(c){return '<button class="chip" '+(c.k!=='all'?catStyle(c.k):'')+' data-action="f-cat" data-k="'+c.k+'" aria-pressed="'+(S.fCat===c.k)+'">'+(c.code?'<span class="code">'+c.code+'</span>':'')+c.label+'</button>'}).join('')+'</div>'+
+    '<div class="scroll-x">'+[{k:'all',label:'Any stage'}].concat(STAGES).map(function(s){return '<button class="chip" data-action="f-stage" data-k="'+s.k+'" aria-pressed="'+(S.fStage===s.k)+'">'+s.label+'</button>'}).join('')+'</div>'+
+    '<div id="vlist" style="display:flex;flex-direction:column;gap:10px">'+vaultList()+'</div></div>';
+}
+function vBoard(){
+  return '<div class="section first"><div class="section-head"><h2>Pipeline</h2><span class="label">swipe →</span></div><div class="board">'+
+    STAGES.map(function(s,si){
+      var items=S.ideas.filter(function(i){return (i.stage||'spark')===s.k});
+      return '<div class="col"><div class="col-head"><h3>'+s.label+'</h3><span class="n">'+items.length+'</span></div>'+
+        (items.map(function(i){var c=catOf(i.cat);return '<div class="mini" '+catStyle(c.k)+'>'+
+          '<button class="t" data-action="open" data-id="'+esc(i.id)+'">'+esc(titleOf(i))+'</button>'+
+          '<div class="acts"><span class="code">'+c.code+'</span><span class="mv">'+
+          '<button class="icon-btn" data-action="move" data-id="'+esc(i.id)+'" data-dir="-1" '+(si===0?'disabled':'')+' aria-label="Move back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>'+
+          '<button class="icon-btn" data-action="move" data-id="'+esc(i.id)+'" data-dir="1" '+(si===STAGES.length-1?'disabled':'')+' aria-label="Move forward"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>'+
+          '</span></div></div>'}).join('')||'<div class="label" style="padding:8px 4px">Empty</div>')+'</div>';
+    }).join('')+'</div></div>';
+}
+function vLab(){
+  var st=streaks(),n=S.ideas.length,t=new Date();
+  var month=S.ideas.filter(function(i){var d=new Date(i.createdAt);return d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}).length;
+  var counts=CATS.map(function(c){return S.ideas.filter(function(i){return i.cat===c.k}).length});
+  var max=Math.max.apply(null,[1].concat(counts));
+  var jar=S.jar&&byId(S.jar);
+  var mix=S.mix&&[byId(S.mix[0]),byId(S.mix[1])];
+  if(mix&&(!mix[0]||!mix[1])) mix=null;
+  return '<div class="section first"><div class="panel"><div class="section-head"><h2>Shake the jar</h2><button class="btn small" data-action="shake" '+(n?'':'disabled')+'>Shake</button></div>'+
+      '<span class="sub">Pulls a random unfinished idea back out so it doesn\'t get forgotten.</span>'+
+      (jar?'<div class="list pop">'+cardHTML(jar)+'</div>':'')+'</div></div>'+
+    '<div class="section"><div class="panel mix"><div class="section-head"><h2>Mix two ideas</h2><button class="btn small" data-action="mix" '+(n<2?'disabled':'')+'>'+(mix?'New pair':'Draw pair')+'</button></div>'+
+      '<span class="sub">Draws two random ideas. Think how they could work together and save the result as a new spark.</span>'+
+      (n<2?'<div class="empty">Save at least two ideas to mix them.</div>':'')+
+      (mix?'<div class="list pop">'+cardHTML(mix[0])+'<div class="plus">+</div>'+cardHTML(mix[1])+'</div>'+
+        '<textarea id="mixText" placeholder="What if these were one project? e.g. the sorting arm, but it reports to the IoT dashboard…"></textarea>'+
+        '<div class="row"><span class="spacer"></span><button class="btn small accent" data-action="mix-save">Save as new spark</button></div>':'')+
+    '</div></div>'+
+    '<div class="section"><h2 style="font-size:17px">Your numbers</h2>'+
+      '<div class="stats"><div class="stat"><span class="label">Ideas</span><b>'+n+'</b></div><div class="stat"><span class="label">This month</span><b>'+month+'</b></div><div class="stat"><span class="label">Best streak</span><b>'+st.best+'<span style="font-size:13px;color:var(--muted)"> d</span></b></div></div>'+
+      '<div class="pipeline">'+STAGES.map(function(s){return '<div><b>'+S.ideas.filter(function(i){return (i.stage||'spark')===s.k}).length+'</b><span>'+s.label+'</span></div>'}).join('')+'</div>'+
+      '<div class="panel"><span class="label">What you think about most</span><div class="bars">'+
+        CATS.map(function(c,ix){return '<div class="bar" '+catStyle(c.k)+'><span>'+c.label+'</span><div class="track"><div class="fill" style="width:'+(counts[ix]/max*100)+'%"></div></div><span class="v">'+counts[ix]+'</span></div>'}).join('')+
+      '</div></div></div>';
+}
+
+/* ---------- render ---------- */
+function render(){
+  $('#streakN').textContent=streaks().cur; setSync();
+  [].forEach.call(document.querySelectorAll('nav.tabs button'),function(b){b.setAttribute('aria-selected',b.dataset.tab===S.tab)});
+  if(S.tab==='capture'){ if(!$('#capForm')) $('#view').innerHTML=vCapture(); $('#recent').innerHTML=recentHTML(); }
+  else if(S.tab==='vault'){ if(!$('#q')) $('#view').innerHTML=vVault(); else $('#vlist').innerHTML=vaultList(); }
+  else if(S.tab==='lab'){ var mt=$('#mixText'); var keep=mt&&mt.value; $('#view').innerHTML=vLab(); if(keep&&$('#mixText')) $('#mixText').value=keep; }
+  else $('#view').innerHTML=vBoard();
+  if(S.openId) renderSheetChips();
+}
+function setTab(t){S.tab=t;ls.set('iv-tab',t);$('#view').innerHTML='';render();window.scrollTo(0,0)}
+
+/* ---------- detail sheet ---------- */
+function openSheet(id){
+  var i=byId(id); if(!i) return;
+  S.openId=id; $('#sheetRoot').hidden=false; document.body.style.overflow='hidden';
+  $('#sheet').innerHTML=
+    '<div class="row"><span class="label">'+catOf(i.cat).code+' · saved '+esc(ago(i.createdAt))+'</span><span class="spacer"></span><button class="btn small ghost" data-action="close-sheet">Done</button></div>'+
+    '<div class="field"><label class="label" for="shTitle">Name</label><input id="shTitle" class="title-in" value="'+esc(i.title||'')+'" placeholder="'+esc(titleOf(i))+'"></div>'+
+    '<div class="field"><label class="label" for="shText">The idea</label><textarea id="shText">'+esc(i.text)+'</textarea></div>'+
+    '<div id="shChips"></div>'+
+    '<div class="field"><label class="label" for="shNotes">Notes: parts, links, prices, next steps</label><textarea id="shNotes" placeholder="Parts you found, a similar project, a price you checked…">'+esc(i.notes||'')+'</textarea></div>'+
+    '<div id="shDel" class="confirm"><button class="btn small danger" data-action="del-ask">Delete idea</button></div>';
+  renderSheetChips();
+}
+function renderSheetChips(){
+  var i=byId(S.openId); if(!i){closeSheet();return}
+  $('#shChips').innerHTML=
+    '<div class="field"><span class="label">Stage</span><div class="chips">'+STAGES.map(function(s){return '<button class="chip" data-action="set" data-f="stage" data-k="'+s.k+'" aria-pressed="'+((i.stage||'spark')===s.k)+'">'+s.label+'</button>'}).join('')+'</div></div>'+
+    '<div class="field" style="margin-top:12px"><span class="label">Type</span><div class="chips">'+CATS.map(function(c){return '<button class="chip" '+catStyle(c.k)+' data-action="set" data-f="cat" data-k="'+c.k+'" aria-pressed="'+(i.cat===c.k)+'"><span class="code">'+c.code+'</span>'+c.label+'</button>'}).join('')+'</div></div>'+
+    '<div class="field" style="margin-top:12px"><span class="label">Excitement</span><div class="chips">'+HEAT.map(function(h){return '<button class="chip" data-action="set" data-f="heat" data-k="'+h.k+'" aria-pressed="'+(i.heat===h.k)+'">'+h.label+'</button>'}).join('')+'</div></div>';
+}
+function commitSheetFields(){
+  if(!S.openId) return;
+  var patch={},i=byId(S.openId); if(!i) return;
+  [['#shTitle','title'],['#shText','text'],['#shNotes','notes']].forEach(function(p){var el=$(p[0]);if(el&&(i[p[1]]||'')!==el.value) patch[p[1]]=el.value});
+  if(Object.keys(patch).length) Store.update(S.openId,patch);
+}
+function openSettings(){
+  S.openId=null; $('#sheetRoot').hidden=false; document.body.style.overflow='hidden';
+  $('#sheet').innerHTML=
+    '<div class="row"><h2 style="font-size:19px">Google Sheet sync</h2><span class="spacer"></span><button class="btn small ghost" data-action="close-sheet">Done</button></div>'+
+    '<ol class="steps"><li>In Apps Script, run <b>setup</b> and copy the key from the Execution log.</li><li>Deploy as a Web app with access set to <b>Anyone</b>, then copy the Web app URL.</li><li>Paste both below and tap Connect.</li></ol>'+
+    '<div class="field"><label class="label" for="cfgUrl">Web app URL</label><input id="cfgUrl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec" value="'+esc(CFG.url)+'"></div>'+
+    '<div class="field"><label class="label" for="cfgKey">Secret key</label><input id="cfgKey" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste the key from setup" value="'+esc(CFG.key)+'"></div>'+
+    '<div class="row"><button class="btn accent" data-action="cfg-save">Connect</button>'+(connected()?'<button class="btn ghost" data-action="cfg-forget">Disconnect</button>':'')+'</div>'+
+    '<div class="status-line" id="cfgStatus">'+(connected()?(S.badKey?'The Sheet rejected this key.':'Connected.'):'Not connected. Ideas stay on this phone until you connect.')+'</div>'+
+    '<span style="font-size:13px;color:var(--muted)">The key is stored only on this phone. Anyone with both the URL and the key could read your ideas, so keep them private.</span>';
+}
+function closeSheet(){commitSheetFields();S.openId=null;$('#sheetRoot').hidden=true;document.body.style.overflow='';$('#sheet').innerHTML=''}
+
+/* ---------- events ---------- */
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-action],[data-tab]'); if(!b) return;
+  if(b.dataset.tab){setTab(b.dataset.tab);return}
+  var a=b.dataset.action,k=b.dataset.k,id=b.dataset.id;
+  if(a==='d-cat'||a==='d-heat'){S.draft[a==='d-cat'?'cat':'heat']=k;ls.set('iv-draft',S.draft);
+    [].forEach.call(b.parentElement.querySelectorAll('.chip'),function(c){c.setAttribute('aria-pressed',c===b)});}
+  else if(a==='open') openSheet(id);
+  else if(a==='settings') openSettings();
+  else if(a==='cfg-save'){
+    var cfg={url:($('#cfgUrl').value||'').trim(),key:($('#cfgKey').value||'').trim()};
+    var st=$('#cfgStatus');
+    if(!/^https:\/\/script\.google(usercontent)?\.com\/.+/.test(cfg.url)){st.className='status-line bad';st.textContent='That URL should start with https://script.google.com/macros/s/ and end with /exec.';return}
+    if(!cfg.key){st.className='status-line bad';st.textContent='Paste the key from setup.';return}
+    st.className='status-line';st.textContent='Testing connection…';b.disabled=true;
+    call({action:'ping'},cfg).then(function(){
+      CFG=cfg;ls.set('iv-config',CFG);S.badKey=false;S.online=true;
+      st.className='status-line ok';st.textContent='Connected. Syncing your ideas…';b.disabled=false;
+      return firstSync().then(function(){st.textContent='Connected and synced.'});
+    }).catch(function(e){
+      b.disabled=false;st.className='status-line bad';
+      st.textContent=e&&e.code==='bad_key'?'The Sheet rejected this key. Copy it again from the Execution log.':
+        'Could not reach the Sheet. Check the URL, and that the deployment\'s access is set to Anyone.';
+    });
+  }
+  else if(a==='cfg-forget'){CFG={url:'',key:''};ls.set('iv-config',CFG);S.queue=[];saveLocal();closeSheet();render();toast('Disconnected. Ideas stay on this phone.')}
+  else if(a==='close-sheet') closeSheet();
+  else if(a==='tab') setTab(k);
+  else if(a==='f-cat'){S.fCat=k;$('#view').innerHTML='';render()}
+  else if(a==='f-stage'){S.fStage=k;$('#view').innerHTML='';render()}
+  else if(a==='move'){var i=byId(id);var idx=STAGES.findIndex(function(s){return s.k===(i.stage||'spark')})+Number(b.dataset.dir);
+    if(idx>=0&&idx<STAGES.length){Store.update(id,{stage:STAGES[idx].k});if(STAGES[idx].k==='shipped') toast('Shipped! Nice work.')}}
+  else if(a==='set'){var p={};p[b.dataset.f]=k;Store.update(S.openId,p)}
+  else if(a==='del-ask'){$('#shDel').innerHTML='<span>Delete this idea for good?</span><button class="btn small danger" data-action="del-yes">Delete</button><button class="btn small" data-action="del-no">Keep it</button>'}
+  else if(a==='del-no'){$('#shDel').innerHTML='<button class="btn small danger" data-action="del-ask">Delete idea</button>'}
+  else if(a==='del-yes'){var did=S.openId;S.openId=null;$('#sheetRoot').hidden=true;document.body.style.overflow='';Store.remove(did);toast('Idea deleted.')}
+  else if(a==='shake'){var pool=S.ideas.filter(function(i){return (i.stage||'spark')!=='shipped'&&i.id!==S.jar});var src=pool.length?pool:S.ideas;
+    S.jar=(src[Math.floor(Math.random()*src.length)]||{}).id;render()}
+  else if(a==='mix'){if(S.ideas.length<2)return;var x=Math.floor(Math.random()*S.ideas.length),y;do{y=Math.floor(Math.random()*S.ideas.length)}while(y===x);
+    S.mix=[S.ideas[x].id,S.ideas[y].id];if($('#mixText'))$('#mixText').value='';render()}
+  else if(a==='mix-save'){var txt=($('#mixText').value||'').trim();if(!txt){toast('Write how the two could work together first.');return}
+    var A=byId(S.mix[0]),B=byId(S.mix[1]),now=Date.now();
+    Store.add({id:newId(),createdAt:now,updatedAt:now,title:'',text:txt,cat:A?A.cat:'other',heat:'warm',stage:'spark',
+      notes:'Mixed from: '+(A?titleOf(A):'')+' + '+(B?titleOf(B):'')});
+    S.mix=null;$('#mixText').value='';render();toast('New spark saved.')}
+});
+var shTimer;
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.id==='capText'){S.draft.text=t.value;ls.set('iv-draft',S.draft);$('#capSave').disabled=!t.value.trim()}
+  else if(t.id==='capTitle'){S.draft.title=t.value;ls.set('iv-draft',S.draft)}
+  else if(t.id==='q'){S.q=t.value;$('#vlist').innerHTML=vaultList()}
+  else if(t.id==='shTitle'||t.id==='shText'||t.id==='shNotes'){clearTimeout(shTimer);shTimer=setTimeout(commitSheetFields,1200)}
+});
+document.addEventListener('submit',function(e){
+  if(e.target.id!=='capForm') return; e.preventDefault();
+  var text=(S.draft.text||'').trim(); if(!text) return;
+  var now=Date.now();
+  Store.add({id:newId(),createdAt:now,updatedAt:now,title:(S.draft.title||'').trim(),text:text,cat:S.draft.cat,heat:S.draft.heat,stage:'spark',notes:''});
+  S.draft.text='';S.draft.title='';ls.set('iv-draft',S.draft);
+  $('#capText').value='';$('#capTitle').value='';$('#capSave').disabled=true;
+  var f=$('#capForm');f.classList.remove('pop');void f.offsetWidth;f.classList.add('pop');
+  toast('Saved. It\'s in your vault.');
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.openId) closeSheet()});
+
+if(S.ideas.length) S.loaded=true;
+try{var qt=new URLSearchParams(location.search).get('tab');if(['capture','vault','board','lab'].indexOf(qt)>=0)S.tab=qt}catch(e){}
+render();
+flush();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+})();
+</script>
+</body>
+</html>
